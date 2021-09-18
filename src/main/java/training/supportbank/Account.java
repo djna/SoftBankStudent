@@ -1,56 +1,51 @@
 package training.supportbank;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
 public class Account {
 
-    private String myName;
-    private List<Transaction> myIncomingTransactions;
-    private List<Transaction> myOutgoingTransactions;
+    private String owner;
+    private List<Transaction> incomingTransactions = new ArrayList<>();
+    private List<Transaction> outgoingTransactions = new ArrayList<>();
 
-    public Account(String name){
-        if ( name == null){
-            throw new IllegalArgumentException("name cannot be null");
-        }
-        myName = name;
-
-        myIncomingTransactions = new ArrayList<Transaction>();
-        myOutgoingTransactions = new ArrayList<Transaction>();
+    public Account(String owner) {
+        this.owner = owner;
     }
 
-    public void addIncomingTransaction(Transaction incoming){
-        if (! incoming.getTo().equals(myName)){
-            throw new IllegalArgumentException("wrong account for incoming");
-        }
-        myIncomingTransactions.add(incoming);
+    public String getOwner() {
+        return owner;
     }
 
-    public void addOutgoingTransaction(Transaction outgoing){
-        if (! outgoing.getFrom().equals(myName)){
-            throw new IllegalArgumentException("wrong account for incoming");
-        }
-        myOutgoingTransactions.add(outgoing);
+    public void addIncomingTransaction(Transaction transaction) {
+        incomingTransactions.add(transaction);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Account account = (Account) o;
-        return myName.equals(account.myName);
+    public void addOutgoingTransaction(Transaction transaction) {
+        outgoingTransactions.add(transaction);
+    }
+
+    public BigDecimal calculateBalance() {
+        BigDecimal totalIn = incomingTransactions.stream().map(Transaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalOut = outgoingTransactions.stream().map(Transaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return totalIn.subtract(totalOut);
+    }
+
+    public List<Transaction> getAllTransactionsInDateOrder() {
+        List<Transaction> allTransations = new ArrayList<>();
+        allTransations.addAll(incomingTransactions);
+        allTransations.addAll(outgoingTransactions);
+        allTransations.sort(Comparator.comparing(Transaction::getDate));
+        return allTransations;
     }
 
     @Override
     public String toString() {
         return "Account{" +
-                "myName='" + myName + '\'' +
-                '}';
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(myName);
+                "owner='" + owner +
+                "}";
     }
 }
